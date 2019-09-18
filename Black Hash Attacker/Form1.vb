@@ -1,57 +1,11 @@
 ﻿Imports System.Security.Cryptography
 Imports System.Text
 Public Class Form1
-    Private Sub Button2_Click(sender As Object, e As EventArgs)
-
-    End Sub
-    Private Sub TextBox2_TextChanged(sender As Object, e As EventArgs)
-
-    End Sub
-
-    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
-        Dim a As New OpenFileDialog
-        With a
-            .Filter = "txt (*.txt)|*.txt"
-            .Title = "select password list"
-            If .ShowDialog = Windows.Forms.DialogResult.OK Then
-                TextBox6.Text = .FileName
-            Else
-                Return
-            End If
-        End With
-    End Sub
-
-    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
-        Dim a As New OpenFileDialog
-        With a
-            .Filter = "txt (*.txt)|*.txt"
-            .Title = "select hash list"
-            If .ShowDialog = Windows.Forms.DialogResult.OK Then
-                TextBox5.Text = .FileName
-            Else
-                Return
-            End If
-        End With
-    End Sub
-    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
-        Dim attacker As New Threading.Thread(AddressOf Attack)
-        attacker.Start()
-    End Sub
-    Function Attack()
-        On Error Resume Next
-        Dim PasswordList() As String = IO.File.ReadAllLines(TextBox6.Text)
-        Dim HashList() As String = IO.File.ReadAllLines(TextBox5.Text)
-        IO.File.Create("OutputMD5.txt")
-        For Each password As String In PasswordList
-            For Each hash As String In HashList
-                If GetHashMD5(password) = hash.ToUpper Then
-                    IO.File.AppendAllText("OutputMD5.txt", "Password Found [ " & password & ":" & hash & " ]" & vbNewLine)
-                End If
-            Next
-        Next
-    End Function
-
+    Dim salt As String = ""
     Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
+        If CheckBox2.Checked Then
+            salt = TextBox4.Text
+        End If
         TextBox3.Text = "Please Wait..."
         Dim attacker As New Threading.Thread(AddressOf SingleAttack)
         attacker.Start(ComboBox1.Text)
@@ -82,17 +36,19 @@ Public Class Form1
             ComboBox1.Text = "SHA384"
         ElseIf TextBox2.Text.Length = 128 Then
             ComboBox1.Text = "SHA512"
+        ElseIf TextBox2.Text.Length > 128 Then
+            MsgBox("Sorry we do not support this hash yet", MsgBoxStyle.Critical, "):")
         End If
     End Sub
-    Private Delegate Sub UpdateStatusLabelDelegate(ByVal status As String)
-    Private Sub UpdateStatusLabel(ByVal status As String)
+    Private Delegate Sub UpdatePasswordTextDelegate(ByVal status As String)
+    Private Sub UpdatePasswordText(ByVal status As String)
         Try
-            BeginInvoke(New UpdateStatusLabelDelegate(AddressOf UpdateStatusLabelSub), status)
+            BeginInvoke(New UpdatePasswordTextDelegate(AddressOf UpdatePasswordTextSub), status)
         Catch ex As Exception
 
         End Try
     End Sub
-    Private Sub UpdateStatusLabelSub(ByVal status As String)
+    Private Sub UpdatePasswordTextSub(ByVal status As String)
         Try
             TextBox3.Text = status
         Catch ex As Exception
@@ -101,37 +57,109 @@ Public Class Form1
     End Sub
     Sub SingleAttack(ByVal HashType As String)
         Dim PasswordList() As String = IO.File.ReadAllLines(TextBox1.Text)
+        Dim Count As Integer = PasswordList.Length
+        Dim Password As Integer = 0
         For Each hash As String In PasswordList
             Select Case HashType
                 Case "MD5"
-                    If GetHashMD5(hash) = TextBox2.Text.ToUpper Then
-                        UpdateStatusLabel("Password Found : " & hash)
-                        Return
+                    Label1.Text = "Password Teste: " & Password & "/" & Count
+                    Password = Password + 1
+                    If CheckBox2.Checked Then
+                        If GetHashMD5(salt & hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
+                    Else
+                        If GetHashMD5(hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
                     End If
+
                 Case "SHA1"
-                    If GetHashSHA1(hash) = TextBox2.Text.ToUpper Then
-                        UpdateStatusLabel("Password Found : " & hash)
-                        Return
+                    Label1.Text = "Password Teste: " & Password & "/" & Count
+                    Password = Password + 1
+                    If CheckBox2.Checked Then
+                        If GetHashSHA1(salt & hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
+                    Else
+                        If GetHashSHA1(hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
                     End If
+
                 Case "SHA256"
-                    If GetHashSHA256(hash) = TextBox2.Text.ToUpper Then
-                        UpdateStatusLabel("Password Found : " & hash)
-                        Return
+                    Label1.Text = "Password Teste: " & Password & "/" & Count
+                    Password = Password + 1
+                    If CheckBox2.Checked Then
+                        If GetHashSHA256(salt & hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
+                    Else
+                        If GetHashSHA256(salt & hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
                     End If
+
+
                 Case "SHA384"
-                    If GetHashSHA384(hash) = TextBox2.Text.ToUpper Then
-                        UpdateStatusLabel("Password Found : " & hash)
-                        Return
+                    Label1.Text = "Password Teste: " & Password & "/" & Count
+                    Password = Password + 1
+                    If CheckBox2.Checked Then
+                        If GetHashSHA384(salt & hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
+                    Else
+                        If GetHashSHA384(hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
                     End If
+
+
                 Case "SHA512"
-                    If GetHashSHA512(hash) = TextBox2.Text.ToUpper Then
-                        UpdateStatusLabel("Password Found : " & hash)
-                        Return
+                    Label1.Text = "Password Teste: " & Password & "/" & Count
+                    Password = Password + 1
+                    If CheckBox2.Checked Then
+                        If GetHashSHA512(salt & hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
+                    Else
+                        If GetHashSHA512(hash) = TextBox2.Text.ToUpper Then
+                            UpdatePasswordText("Password Found : " & hash)
+                            MsgBox("Hash Has Been Cracked !", MsgBoxStyle.Information, "Done!")
+                            Return
+                        End If
                     End If
             End Select
         Next
     End Sub
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Control.CheckForIllegalCrossThreadCalls = False
+    End Sub
+    Private Sub CheckBox2_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox2.CheckedChanged
+        If CheckBox2.Checked = True Then
+            CheckBox2.Text = "Disable"
+            TextBox4.Enabled = True
+        Else
+            CheckBox2.Text = "Enable"
+            TextBox4.Enabled = False
+        End If
     End Sub
 End Class

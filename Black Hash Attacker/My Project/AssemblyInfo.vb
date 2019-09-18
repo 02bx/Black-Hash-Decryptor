@@ -9,7 +9,7 @@ Imports System.Runtime.InteropServices
 ' Review the values of the assembly attributes
 
 <Assembly: AssemblyTitle("Black Bruteforce Attack Tool")> 
-<Assembly: AssemblyDescription("Fast Password Cracker")> 
+<Assembly: AssemblyDescription("Fast Password Cracking Tool")> 
 <Assembly: AssemblyCompany("DarkSoftwareCo")> 
 <Assembly: AssemblyProduct("Black Bruteforce Attack Tool")> 
 <Assembly: AssemblyCopyright("Copyright © DarkSoftwareCo 2019")> 
